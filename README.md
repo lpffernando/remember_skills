@@ -78,12 +78,7 @@ Unified knowledge base that team members can maintain together, building organiz
 
 ## Quick Start
 
-**1. Install Dependencies**
-```bash
-pip install markitdown
-```
-
-**2. Place in Skills Directory**
+**1. Place in Skills Directory**
 ```bash
 # Linux/Mac
 cp -r remember ~/.claude/skills/
@@ -91,7 +86,7 @@ cp -r remember ~/.claude/skills/
 # Windows - Manually copy remember folder to C:\Users\YourUsername\.claude\skills\
 ```
 
-**3. Restart Claude Code and Use**
+**2. Restart Claude Code and Use**
 ```
 /remember --add "Important information"
 /remember --process "Report.pptx"

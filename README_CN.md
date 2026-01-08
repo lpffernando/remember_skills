@@ -78,12 +78,7 @@
 
 ## 快速开始
 
-**1. 安装依赖**
-```bash
-pip install markitdown
-```
-
-**2. 放入 Skills 目录**
+**1. 放入 Skills 目录**
 ```bash
 # Linux/Mac
 cp -r remember ~/.claude/skills/
@@ -91,7 +86,7 @@ cp -r remember ~/.claude/skills/
 # Windows - 手动复制 remember 文件夹到 C:\Users\你的用户名\.claude\skills\
 ```
 
-**3. 重启 Claude Code，直接使用**
+**2. 重启 Claude Code，直接使用**
 ```
 /remember --add "重要信息"
 /remember --process "报告.pptx"
