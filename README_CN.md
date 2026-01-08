@@ -41,21 +41,21 @@
 ### 1. 记忆存储
 随时记录重要信息：
 ```
-/remeber --add "用户偏好TDD开发方式"
+/remember --add "用户偏好TDD开发方式"
 ```
 
 ### 2. 智能文档转换
 把 PPT/PDF/DOCX 转成结构化记忆：
 ```
-/remeber --process "项目报告.pptx"
-/remeber --batch "文件1.pptx 文件2.pdf 文件3.docx"
+/remember --process "项目报告.pptx"
+/remember --batch "文件1.pptx 文件2.pdf 文件3.docx"
 ```
 
 ### 3. 跨会话检索
 随时找回之前的信息：
 ```
-/remeber --search "之前的项目背景"
-/remeber --list
+/remember --search "之前的项目背景"
+/remember --list
 ```
 
 ---
@@ -86,16 +86,16 @@ pip install markitdown
 **2. 放入 Skills 目录**
 ```bash
 # Linux/Mac
-cp -r remeber ~/.claude/skills/
+cp -r remember ~/.claude/skills/
 
-# Windows - 手动复制 remeber 文件夹到 C:\Users\你的用户名\.claude\skills\
+# Windows - 手动复制 remember 文件夹到 C:\Users\你的用户名\.claude\skills\
 ```
 
 **3. 重启 Claude Code，直接使用**
 ```
-/remeber --add "重要信息"
-/remeber --process "报告.pptx"
-/remeber --search "关键词"
+/remember --add "重要信息"
+/remember --process "报告.pptx"
+/remember --search "关键词"
 ```
 
 ---

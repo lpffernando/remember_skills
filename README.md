@@ -41,21 +41,21 @@ A Claude Code Skill that solves AI's inherent lack of memory. By building a pers
 ### 1. Memory Storage
 Record important information anytime:
 ```
-/remeber --add "User prefers TDD development approach"
+/remember --add "User prefers TDD development approach"
 ```
 
 ### 2. Intelligent Document Conversion
 Convert PPT/PDF/DOCX into structured memories:
 ```
-/remeber --process "ProjectReport.pptx"
-/remeber --batch "File1.pptx File2.pdf File3.docx"
+/remember --process "ProjectReport.pptx"
+/remember --batch "File1.pptx File2.pdf File3.docx"
 ```
 
 ### 3. Cross-Session Retrieval
 Retrieve information anytime:
 ```
-/remeber --search "Previous project background"
-/remeber --list
+/remember --search "Previous project background"
+/remember --list
 ```
 
 ---
@@ -86,16 +86,16 @@ pip install markitdown
 **2. Place in Skills Directory**
 ```bash
 # Linux/Mac
-cp -r remeber ~/.claude/skills/
+cp -r remember ~/.claude/skills/
 
-# Windows - Manually copy remeber folder to C:\Users\YourUsername\.claude\skills\
+# Windows - Manually copy remember folder to C:\Users\YourUsername\.claude\skills\
 ```
 
 **3. Restart Claude Code and Use**
 ```
-/remeber --add "Important information"
-/remeber --process "Report.pptx"
-/remeber --search "keyword"
+/remember --add "Important information"
+/remember --process "Report.pptx"
+/remember --search "keyword"
 ```
 
 ---

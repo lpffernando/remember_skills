@@ -9,16 +9,16 @@ description: Multi-layer global memory system for AI agents. Store/retrieve know
 
 ```bash
 # Add memory
-/remeber --add "重要信息"
+/remember --add "重要信息"
 
 # Search
-/remeber --search "关键词"
+/remember --search "关键词"
 
 # Process file → 1-10 memories
-/remeber --process "文件.pptx"
+/remember --process "文件.pptx"
 
 # List all
-/remeber --list
+/remember --list
 ```
 
 ## Core Layers
