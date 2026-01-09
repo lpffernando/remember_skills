@@ -35,7 +35,9 @@ description: Multi-layer global memory system for AI agents. Store/retrieve know
 
 | Command | Description |
 |---------|-------------|
-| `--add "content"` | Store memory |
+| `--add "content"` | Store new memory |
+| `--index "key"` | Add tags to memory |
+| `--update "key"` | Update memory content |
 | `--search "query"` | Search memories |
 | `--process "file"` | Convert file to memories |
 | `--list` | List all layers |
@@ -45,21 +47,7 @@ description: Multi-layer global memory system for AI agents. Store/retrieve know
 
 ## Detailed References
 
-### Memory Layers
-- Capacity, selection guide, use cases
-- See [layers.md](references/layers.md)
-
-### 6 Memory Operations
-- Consolidation, Indexing, Updating, Forgetting, Retrieval, Compression
-- See [operations.md](references/operations.md)
-
-### Routing & Batch Processing
-- Content routing rules, batch workflow, cross-links
-- See [ROUTING.md](references/ROUTING.md)
-
-### Usage Examples
-- Workflow patterns, document storage, long-term memory building
-- See [examples.md](references/examples.md)
+See [references/api.md](references/api.md) for complete API documentation, advanced usage, and examples.
 
 ## Storage
 

@@ -144,6 +144,55 @@ def delete_memory(key: str = None, layer: str = None, remove_all: bool = False):
         print(f"[Delete] {key}")
 
 
+# ==================== INDEXING & UPDATING ====================
+def index_memory(key: str, layer: str, tags: list):
+    """Add tags to existing memory."""
+    memories = load_memories()
+
+    if layer not in memories:
+        print(f"[Error] Layer '{layer}' not found")
+        return
+
+    if key not in memories[layer]:
+        print(f"[Error] Memory '{key}' not found")
+        return
+
+    memory = memories[layer][key]
+    existing = set(memory.get("tags", []))
+    new_tags = set(tags)
+    memory["tags"] = list(existing | new_tags)
+    memory["updated"] = datetime.now().isoformat()
+    memory["accessed"] = memory.get("accessed", 0) + 1
+
+    save_memories(memories)
+    print(f"[Index] {key}: added {len(new_tags)} tags")
+
+
+def update_memory(key: str, layer: str, new_content: str):
+    """Update memory content."""
+    memories = load_memories()
+
+    if layer not in memories:
+        print(f"[Error] Layer '{layer}' not found")
+        return
+
+    if key not in memories[layer]:
+        print(f"[Error] Memory '{key}' not found")
+        return
+
+    if len(new_content.strip()) < 20:
+        print("[Error] Content too short (<20 chars)")
+        return
+
+    memory = memories[layer][key]
+    memory["content"] = new_content
+    memory["updated"] = datetime.now().isoformat()
+    memory["accessed"] = 0
+
+    save_memories(memories)
+    print(f"[Update] {key}: content updated")
+
+
 # ==================== CONTENT ANALYSIS & SPLITTING ====================
 def analyze_content_richness(content: str) -> int:
     """
@@ -390,6 +439,9 @@ Full docs: See SKILL.md
     parser.add_argument("--min", type=int, help="Minimum memories to create (default: auto)")
     parser.add_argument("--max", type=int, default=10, help="Maximum memories to create (default: 10)")
     parser.add_argument("--batch", metavar="FILES", help="Process multiple files (space-separated)")
+    parser.add_argument("--index", metavar="KEY", help="Index memory with tags")
+    parser.add_argument("--update", metavar="KEY", help="Update memory content")
+    parser.add_argument("--content", help="New content for update")
 
     args = parser.parse_args()
 
@@ -418,6 +470,16 @@ Full docs: See SKILL.md
             count = process_file(f, args.layer or "cognitive", args.min, args.max)
             total += count
         print(f"[Batch] Total: {total} memories from {len(files)} files")
+    elif args.index:
+        if not args.tags:
+            print("[Error] --tags required for --index")
+        else:
+            index_memory(args.index, args.layer or "cognitive", args.tags)
+    elif args.update:
+        if not args.content:
+            print("[Error] --content required for --update")
+        else:
+            update_memory(args.update, args.layer or "cognitive", args.content)
     else:
         parser.print_help()
 
