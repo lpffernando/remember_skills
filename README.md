@@ -21,8 +21,9 @@ A Claude Code Skill that solves AI's inherent lack of memory. By building a pers
 | **Indexing** | Add tags, build associations for easy retrieval |
 | **Updating** | Modify content while preserving metadata |
 | **Forgetting** | Delete or compress low-activity memories |
-| **Retrieval** | Semantic search with relevance ranking |
+| **Retrieval** | Hybrid search: Semantic (Qwen3 AI) + Keyword matching |
 | **Compression** | Generate summaries for long memories to save space |
+| **Reindexing** | Backfill vector embeddings for existing memories |
 
 ### 5 Memory Layers
 
@@ -52,10 +53,16 @@ Convert PPT/PDF/DOCX into structured memories:
 ```
 
 ### 3. Cross-Session Retrieval
-Retrieve information anytime:
+Retrieve information anytime using AI semantic search (finds meaning, not just keywords):
 ```
 /remember --search "Previous project background"
 /remember --list
+```
+
+### 4. Upgrade Existing Data
+Enable AI features for old data:
+```
+/remember --reindex
 ```
 
 ---
@@ -78,18 +85,17 @@ Unified knowledge base that team members can maintain together, building organiz
 
 ## Quick Start
 
-**1. Place in Skills Directory**
+**1. Installation**
 ```bash
-# Linux/Mac
-cp -r remember ~/.claude/skills/
-
-# Windows - Manually copy remember folder to C:\Users\YourUsername\.claude\skills\
+# Install package and dependencies
+pip install sentence-transformers numpy
+# (Optional) Add to ~/.claude/skills/
 ```
 
-**2. Restart Claude Code and Use**
-```
+**2. Initialize & Use**
+```bash
 /remember --add "Important information"
-/remember --process "Report.pptx"
+/remember --reindex  # Download model and index existing data
 /remember --search "keyword"
 ```
 

@@ -11,8 +11,8 @@ description: Multi-layer global memory system for AI agents. Store/retrieve know
 # Add memory
 /remember --add "重要信息"
 
-# Search
-/remember --search "关键词"
+# Search (Semantic + Keyword)
+/remember --search "如何进行城市规划"
 
 # Process file → 1-10 memories
 /remember --process "文件.pptx"
@@ -38,7 +38,8 @@ description: Multi-layer global memory system for AI agents. Store/retrieve know
 | `--add "content"` | Store new memory |
 | `--index "key"` | Add tags to memory |
 | `--update "key"` | Update memory content |
-| `--search "query"` | Search memories |
+| `--reindex` | Force update embeddings (download model) |
+| `--search "query"` | Hybrid Search (Vector + Keyword) |
 | `--process "file"` | Convert file to memories |
 | `--list` | List all layers |
 | `--get "key"` | Get single memory |

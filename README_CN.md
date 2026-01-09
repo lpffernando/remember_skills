@@ -21,8 +21,9 @@
 | **索引 (Indexing)** | 打标签、建关联，方便检索 |
 | **更新 (Updating)** | 修改内容，保留元数据 |
 | **遗忘 (Forgetting)** | 删除或压缩低活跃度记忆 |
-| **检索 (Retrieval)** | 语义搜索，相关性排序 |
+| **检索 (Retrieval)** | 混合搜索：语义检索 (Qwen3 AI) + 关键词匹配 |
 | **压缩 (Compression)** | 长记忆生成摘要，节省空间 |
+| **重索引 (Reindexing)** | 为已有记忆生成/更新向量数据 |
 
 ### 5 层记忆分类
 
@@ -52,10 +53,16 @@
 ```
 
 ### 3. 跨会话检索
-随时找回之前的信息：
+使用 AI 语义检索随时找回之前的信息（理解意图，不只是匹配关键词）：
 ```
 /remember --search "之前的项目背景"
 /remember --list
+```
+
+### 4. 数据升级
+为旧数据启用 AI 特性：
+```
+/remember --reindex
 ```
 
 ---
@@ -78,18 +85,17 @@
 
 ## 快速开始
 
-**1. 放入 Skills 目录**
+**1. 安装依赖**
 ```bash
-# Linux/Mac
-cp -r remember ~/.claude/skills/
-
-# Windows - 手动复制 remember 文件夹到 C:\Users\你的用户名\.claude\skills\
+# 安装 Python 包
+pip install sentence-transformers numpy
+# (可选) 放入 Skills 目录
 ```
 
-**2. 重启 Claude Code，直接使用**
+**2. 初始化与使用**
 ```
 /remember --add "重要信息"
-/remember --process "报告.pptx"
+/remember --reindex  # 下载模型并索引历史数据
 /remember --search "关键词"
 ```
 

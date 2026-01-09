@@ -16,9 +16,28 @@ import json
 import os
 import re
 import subprocess
-import sys
 from datetime import datetime
 from pathlib import Path
+import shutil
+import sys
+import numpy as np
+
+try:
+    from sentence_transformers import SentenceTransformer, util
+    # Using Qwen2.5/Qwen3 series for better multilingual performance
+    # Note: Qwen/Qwen3-Embedding-0.6B is a great balance of size and performance
+    print("[Init] Loading Qwen3 embedding model... (This may take a while first time)")
+    model = SentenceTransformer('Qwen/Qwen3-Embedding-0.6B', trust_remote_code=True)
+    HAS_SEMANTIC = True
+except ImportError:
+    HAS_SEMANTIC = False
+    model = None
+    print("[Warning] sentence-transformers not found or model failed. Semantic search disabled.")
+except Exception as e:
+    HAS_SEMANTIC = False
+    model = None
+    print(f"[Warning] Failed to load embedding model: {e}")
+
 
 # Config
 MEMORY_DIR = Path(os.environ.get("CLAUDE_MEMORY_DIR",
@@ -36,16 +55,30 @@ def load_memories() -> dict:
     ensure_dir()
     if MEMORY_FILE.exists():
         try:
-            return json.load(open(MEMORY_FILE, encoding='utf-8'))
-        except:
-            pass
+            with open(MEMORY_FILE, encoding='utf-8') as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            print(f"[Error] Corrupted memory file: {MEMORY_FILE}")
+            # Backup corrupted file
+            backup_path = str(MEMORY_FILE) + ".bak"
+            try:
+                shutil.copy(MEMORY_FILE, backup_path)
+                print(f"[Error] Backed up to {backup_path}")
+            except Exception as e:
+                print(f"[Error] Could not backup: {e}")
+            
+            print("[Error] Exiting to prevent data loss. Please fix the file manually.")
+            sys.exit(1)
+        except Exception as e:
+            print(f"[Error] Failed to load memory file: {e}")
+            return {}
     return {}
 
 
 def save_memories(memories: dict):
     ensure_dir()
-    json.dump(memories, open(MEMORY_FILE, 'w', encoding='utf-8'),
-              ensure_ascii=False, indent=2)
+    with open(MEMORY_FILE, 'w', encoding='utf-8') as f:
+        json.dump(memories, f, ensure_ascii=False, indent=2)
 
 
 # ==================== SIMPLE OPERATIONS ====================
@@ -75,6 +108,14 @@ def add_memory(content: str, layer: str, key: str = None, tags: list = None, sou
         "accessed": 0,
     }
 
+    if HAS_SEMANTIC:
+        try:
+            embedding = model.encode(content).tolist()
+            memories[layer][key]["embedding"] = embedding
+        except Exception as e:
+            print(f"[Warning] Failed to generate embedding: {e}")
+
+
     save_memories(memories)
     print(f"[{layer[:3].upper()}] {key}")
 
@@ -82,6 +123,14 @@ def add_memory(content: str, layer: str, key: str = None, tags: list = None, sou
 def get_memory(key: str = None, layer: str = None) -> dict:
     """Get memory."""
     memories = load_memories()
+    
+    if not layer and key:
+        # Search all layers for key
+        for l, items in memories.items():
+            if key in items:
+                layer = l
+                break
+    
     if layer and key and layer in memories and key in memories[layer]:
         memories[layer][key]["accessed"] += 1
         save_memories(memories)
@@ -107,22 +156,56 @@ def list_memories(layer: str = None):
 
 
 def search_memories(query: str, top_k: int = 5):
-    """Search memories (delegates to LLM for relevance)."""
-    # Simple keyword search - LLM does semantic search
+    """Search memories (Hybrid: Semantic + Keyword)."""
     memories = load_memories()
     results = []
+    
+    # 1. Semantic Search
+    # 1. Semantic Search
+    if HAS_SEMANTIC:
+        # Encode query to tensor directly
+        query_embedding = model.encode(query, convert_to_tensor=True)
+        candidates = []
+        
+        for layer, items in memories.items():
+            for key, data in items.items():
+                if "embedding" in data:
+                    try:
+                        # Convert stored list to tensor, ensuring float32 to match query
+                        stored_emb = model.tokenizer.backend_tokenizer.normalizer = None # Hack for some models, but safe here
+                        # Actually just util.cos_sim handles tensors well
+                        emb_tensor = util.cos_sim(query_embedding, data["embedding"])
+                        score = emb_tensor.item()
+                        candidates.append((score, layer, key, data))
+                    except Exception as e:
+                         # Fallback if dimension mismatch
+                        pass
+                elif query.lower() in data.get("content", "").lower():
+                    # Fallback for old memories without embeddings
+                    candidates.append((0.5, layer, key, data))
+        
+        # Sort by score descending
+        candidates.sort(key=lambda x: x[0], reverse=True)
+        results = [(c[1], c[2], c[3]) for c in candidates]
+        
+        print(f"\n[Search] '{query}' (Semantic): {len(results)} results")
+        for i, (score, layer, key, data) in enumerate(candidates[:top_k], 1):
+            print(f"  {i}. [{layer}] {key} (Score: {score:.2f})")
+            print(f"     {data.get('content','')[:80]}...")
+            
+    # 2. Keyword Fallback
+    else:
+        query_lower = query.lower()
+        for layer, items in memories.items():
+            for key, data in items.items():
+                content = data.get("content", "").lower()
+                if query_lower in content or query_lower in key.lower():
+                    results.append((layer, key, data))
 
-    query_lower = query.lower()
-    for layer, items in memories.items():
-        for key, data in items.items():
-            content = data.get("content", "").lower()
-            if query_lower in content or query_lower in key.lower():
-                results.append((layer, key, data))
-
-    print(f"\n[Search] '{query}': {len(results)} results")
-    for i, (layer, key, data) in enumerate(results[:top_k], 1):
-        print(f"  {i}. [{layer}] {key}")
-        print(f"     {data.get('content','')[:80]}...")
+        print(f"\n[Search] '{query}' (Keyword): {len(results)} results")
+        for i, (layer, key, data) in enumerate(results[:top_k], 1):
+            print(f"  {i}. [{layer}] {key}")
+            print(f"     {data.get('content','')[:80]}...")
 
 
 def delete_memory(key: str = None, layer: str = None, remove_all: bool = False):
@@ -138,10 +221,29 @@ def delete_memory(key: str = None, layer: str = None, remove_all: bool = False):
         print("[Delete] All memories deleted")
         return
 
-    if layer and key and layer in memories and key in memories[layer]:
+    if not layer:
+        # Try to find key in any layer
+        found_layers = []
+        for l, items in memories.items():
+            if key in items:
+                found_layers.append(l)
+        
+        if not found_layers:
+            print(f"[Delete] Memory '{key}' not found in any layer")
+            return
+            
+        if len(found_layers) > 1:
+            print(f"[Delete] Ambiguous key '{key}' found in layers: {found_layers}. Please specify -l layer.")
+            return
+            
+        layer = found_layers[0]
+
+    if layer in memories and key in memories[layer]:
         del memories[layer][key]
         save_memories(memories)
-        print(f"[Delete] {key}")
+        print(f"[Delete] {key} (from {layer})")
+    else:
+        print(f"[Delete] Memory '{key}' not found in layer '{layer}'")
 
 
 # ==================== INDEXING & UPDATING ====================
@@ -193,7 +295,37 @@ def update_memory(key: str, layer: str, new_content: str):
     print(f"[Update] {key}: content updated")
 
 
-# ==================== CONTENT ANALYSIS & SPLITTING ====================
+    save_memories(memories)
+    print(f"[Update] {key}: content updated")
+
+
+def reindex_memories():
+    """Backfill embeddings for all memories."""
+    if not HAS_SEMANTIC:
+        print("[Error] sentence-transformers not installed. Cannot reindex.")
+        return
+
+    memories = load_memories()
+    count = 0
+    total = 0
+    
+    print("[Reindex] Generating embeddings for existing memories...")
+    for layer, items in memories.items():
+        for key, data in items.items():
+            total += 1
+            if "content" in data and data["content"].strip():
+                try:
+                    # Always regenerate to ensure latest model compatibility
+                    embedding = model.encode(data["content"]).tolist()
+                    data["embedding"] = embedding
+                    count += 1
+                    if count % 10 == 0:
+                        print(f"  Processed {count} items...", end='\r')
+                except Exception as e:
+                    print(f"  [Error] Failed to encode {key}: {e}")
+                    
+    save_memories(memories)
+    print(f"\n[Reindex] Complete. Updated {count}/{total} memories.")
 def analyze_content_richness(content: str) -> int:
     """
     Analyze content richness and return a score from 1-10.
@@ -390,11 +522,8 @@ def process_file(file_path: str, layer: str = "cognitive", min_memories: int = N
     created = 0
 
     for i, mem_content in enumerate(memories):
-        # Truncate if too long (keep first 500 chars + summary indicator)
-        if len(mem_content) > 500:
-            display_content = mem_content[:500] + "..."
-        else:
-            display_content = mem_content
+        # Store full content
+        display_content = mem_content
 
         key = f"{file_stem}_{i+1:02d}"
         add_memory(display_content, layer, key=key, tags=[file_stem], source=file_path)
@@ -442,11 +571,12 @@ Full docs: See SKILL.md
     parser.add_argument("--index", metavar="KEY", help="Index memory with tags")
     parser.add_argument("--update", metavar="KEY", help="Update memory content")
     parser.add_argument("--content", help="New content for update")
+    parser.add_argument("--reindex", action="store_true", help="Regenerate embeddings for all memories")
 
     args = parser.parse_args()
 
     if args.add:
-        add_memory(" ".join(args.add), args.layer or "cognitive", args.tags, args.source)
+        add_memory(" ".join(args.add), args.layer or "cognitive", key=None, tags=args.tags, source=args.source)
     elif args.get:
         result = get_memory(args.get, args.layer)
         if result:
@@ -480,6 +610,8 @@ Full docs: See SKILL.md
             print("[Error] --content required for --update")
         else:
             update_memory(args.update, args.layer or "cognitive", args.content)
+    elif args.reindex:
+        reindex_memories()
     else:
         parser.print_help()
 

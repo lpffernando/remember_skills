@@ -50,7 +50,8 @@
       "source": "来源（如：用户口述/项目代码分析/技术文档）",
       "created": "YYYY-MM-DD",
       "updated": "YYYY-MM-DD",
-      "accessed": 访问次数计数
+      "accessed": 访问次数计数,
+      "embedding": [0.123, ...] // (Optional) Qwen3 向量数据
     }
   }
 }
@@ -61,7 +62,7 @@
 
 ## 四、 维护与自进化指令 (Self-Evolution)
 
-1. **语义检索**: 检索时通过 `tags` 和 `content` 关键词进行匹配，并结合当前对话的意图。
+1. **语义检索**: 优先使用 `/remember --search "自然语言查询"` 进行向量检索，结合 tags 和 content 关键词匹配。
 2. **写回建议**:
 * 当我们达成一个重要结论（如：确定了某种空间算法逻辑）时，主动询问：“是否需要将此存入 **cognitive** 或 **behavioral** 层级记忆？”
 * 在记录时，务必确保 `updated` 时间戳为当前日期。
