@@ -87,8 +87,8 @@
 
 **1. 安装依赖**
 ```bash
-# 安装 Python 包
-pip install sentence-transformers numpy
+# 安装依赖
+pip install -r requirements.txt
 # (可选) 放入 Skills 目录
 ```
 
@@ -148,3 +148,6 @@ pip install sentence-transformers numpy
 - 长期不用 → 压缩或淘汰
 
 让记忆系统像大脑一样工作。
+## 开源协议
+
+本项目采用 MIT 协议开源 - 详情请参阅 [LICENSE](LICENSE) 文件。

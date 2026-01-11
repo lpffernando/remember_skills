@@ -87,8 +87,8 @@ Unified knowledge base that team members can maintain together, building organiz
 
 **1. Installation**
 ```bash
-# Install package and dependencies
-pip install sentence-transformers numpy
+# Install dependencies
+pip install -r requirements.txt
 # (Optional) Add to ~/.claude/skills/
 ```
 
@@ -148,3 +148,6 @@ After this configuration:
 - Long unused → Compress or discard
 
 Let the memory system work like a brain.
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
